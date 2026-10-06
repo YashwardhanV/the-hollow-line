@@ -1,0 +1,31 @@
+name: Python checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Python ${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.9', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Compile Python source
+        run: python -m compileall -q hollowline play.py
+      - name: Check script entry point
+        run: python play.py --help
+      - name: Check module entry point
+        run: python -m hollowline --help
+      - name: Import game modules
+        run: python -c "from hollowline import art, fx, game, lettering, minigames, state, story, term, ui; assert len(story.CHAPTERS) == 7; assert len(story.ENDINGS) == 6"
